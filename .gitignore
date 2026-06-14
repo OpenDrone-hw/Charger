@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.easyeda_cache/
+.DS_Store
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups/
+fp-info-cache
