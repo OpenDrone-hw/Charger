@@ -20,6 +20,11 @@ Open before layout: confirm in the IP2366 datasheet the max charge current at 6S
 (~5.5A for 140W into 25.2V) and the reference application. Fallback if 6S current
 or IP2366 sourcing falls short: TI BQ25756 + a USB-PD sink IC.
 
+**⚠ Rework — cell balancing.** IP2366 charges the series stack as one; it has **no
+per-cell balancing**, which a 2–6S Li-ion pack needs. Either spec internally-balanced
+(BMS) packs, or add a balancing AFE (e.g. TI BQ769x0) + per-cell sense + balance
+connector. Decision + options: [`docs/research/cell-balancing.md`](docs/research/cell-balancing.md).
+
 ## Agent tooling
 
 This repo carries the incutec-eda agent skills (`.claude/skills/`) and uses the
