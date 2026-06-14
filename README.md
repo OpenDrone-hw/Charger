@@ -2,10 +2,10 @@
 
 An array of cheap charging nodes: off-the-shelf USB-C PD bricks + small chargers that take USB-C in, output 2–6S on JST-XH, auto-pick current from internal resistance, balance cells, and report wirelessly (optional manager node with a screen). **Plan: [`docs/system-architecture.md`](docs/system-architecture.md).**
 
-- **Input:** USB-C, USB-PD 3.1 EPR (up to 28V/5A = 140W).
+- **Input:** USB-C PD from an off-the-shelf brick (no PD source designed here).
 - **Battery:** 2–6S Li-ion / LiFePO₄ (8.4–25.2V). *(1S is out of scope — the
   controller is 2S-minimum, and 1S @ 140W isn't sensible.)*
-- **Power:** 140W max.
+- **Power:** =<3A stack current -> ~65W at 6S, less at lower S (3A x pack V). Plenty for FPV.
 - **Topology:** single-inductor synchronous buck-boost (PD voltage straddles the
   battery voltage, so buck-boost is mandatory).
 
