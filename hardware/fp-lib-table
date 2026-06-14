@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "sourced")(type "KiCad")(uri "${KIPRJMOD}/libs/sourced.pretty")(options "")(descr "project-local sourced footprints"))
+)

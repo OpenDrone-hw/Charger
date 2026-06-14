@@ -1,0 +1,143 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "a77ca365-4163-4c9c-b947-3abecae11ae5")
+	(paper "A4")
+	(title_block
+		(title "Charger")
+	)
+	(lib_symbols)
+	(sheet
+		(at 50.8 50.8)
+		(size 38.1 25.4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "15e9a2bd-a729-4b9c-9a62-a31d6b6c4f35")
+		(property "Sheetname" "power"
+			(at 50.8 50.0884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 50.8 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project None
+				(path "/a77ca365-4163-4c9c-b947-3abecae11ae5"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 101.6 50.8)
+		(size 38.1 25.4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "b82103e2-0c64-4149-be9e-475531805460")
+		(property "Sheetname" "bms"
+			(at 101.6 50.0884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "bms.kicad_sch"
+			(at 101.6 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project None
+				(path "/a77ca365-4163-4c9c-b947-3abecae11ae5"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 152.4 50.8)
+		(size 38.1 25.4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "18179a48-3778-445a-9d39-384efb4bd4e0")
+		(property "Sheetname" "mcu"
+			(at 152.4 50.0884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "mcu.kicad_sch"
+			(at 152.4 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project None
+				(path "/a77ca365-4163-4c9c-b947-3abecae11ae5"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
