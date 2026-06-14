@@ -1,6 +1,6 @@
-# Charger — USB-PD LiPo charger (2–6S, 140W)
+# Charger — distributed USB-C FPV charging nodes (2–6S)
 
-A simple, elegant, cheap USB-PD charger.
+An array of cheap charging nodes: off-the-shelf USB-C PD bricks + small chargers that take USB-C in, output 2–6S on JST-XH, auto-pick current from internal resistance, balance cells, and report wirelessly (optional manager node with a screen). **Plan: [`docs/system-architecture.md`](docs/system-architecture.md).**
 
 - **Input:** USB-C, USB-PD 3.1 EPR (up to 28V/5A = 140W).
 - **Battery:** 2–6S Li-ion / LiFePO₄ (8.4–25.2V). *(1S is out of scope — the
