@@ -64,6 +64,34 @@ limits enforce the 3A ceiling and IR-derived max current. Never charge above XH 
 4. Manager: dedicated SKU vs every node display-capable (cost vs flexibility).
 5. Cost target per node (aim simple/cheap: IP2366 + AFE + ESP32-C3 + passives).
 
+## Scope update — 2026-06-14
+
+Three research docs added under `research/`, resolving the open items above:
+
+- [`research/single-ic-feasibility.md`](research/single-ic-feasibility.md) —
+  **Single-IC verdict: NO.** No IC integrates USB-PD sink + 2–6S buck-boost
+  charge + per-cell balancing. The market splits into (A) PD buck-boost chargers
+  with no balancing and (B) the only balancing-integrated chargers (TI BQ2588x),
+  which are 2S-only / boost-only / no-PD. The IP2366 + separate AFE two-chip plan
+  is therefore the industry-standard architecture, not a compromise. Closest
+  single chip (Renesas RAA489118, 2–7S PD buck-boost) still has no balancing.
+- [`research/cell-balancer.md`](research/cell-balancer.md) — **Chosen AFE: TI
+  BQ76907 (2S–7S).** Single part covers the full 2S–6S range with per-cell 16-bit
+  ADC (for IR), internal-FET passive balancing (~35 mA), and OV/UV/OC/SC/OT
+  protection over I²C. LCSC C22458649, ~$1.46, ACTIVE. The 2S requirement kills
+  every BQ769x0/BQ76952 (≥3S) and MAX17320 (≤4S). BQ76905 (2S–5S) is a 5S-cap
+  fallback only.
+- [`research/per-node-bom.md`](research/per-node-bom.md) — complete per-node BOM
+  by block (IP2366 power stage, USB-C input/protection, BQ76907 AFE+balance,
+  ESP32-C3 + mandatory 3.3 V buck off BAT, JST-XH, output fuse) with concrete LCSC
+  parts, the manager-node display delta, and the open items to finalize.
+
+Net: AFE gap **closed** on paper. Biggest remaining risk is the NDA-only IP2366
+I²C register map (needed for the IR→current loop) — must be obtained + bench-verified.
+
+This supersedes the path-1-vs-2 question in the old `research/cell-balancing.md`:
+we take **path 2** (charger includes balancing) via BQ76907.
+
 ## Milestones
 
 - **M0** research AFE; confirm IP2366 I²C control/readback.
