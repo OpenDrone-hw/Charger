@@ -1,6 +1,6 @@
 # Charger
 
-Open-source distributed USB-C charging system for FPV battery packs, part of the incutec OpenDrone line. Two boards share one charge, sense and balance core built around the TI BQ25758 buck-boost charge controller: the **Charger node** (`hardware/`), a headless 2-6S charging node with an ESP32-C3 and USB-C PD input, and the **Manager** (`hardware-manager/`), a 2-8S hub with display and encoder UI, ESP32-S3, and USB-C PD EPR (240 W), XT60 and solar inputs. Designed in KiCad 10 for JLCPCB assembly. Full design detail: [hardware/docs/DESIGN.md](hardware/docs/DESIGN.md).
+Open-source distributed USB-C charging system for FPV battery packs, part of the incutec OpenDrone line. Two boards share one charge, sense and balance core built around the TI BQ25758 buck-boost charge controller: the **Charger node** (`hardware/`), a headless 2-6S charging node with an ESP32-C3 and USB-C PD input, and the **Manager** (`hardware-manager/`), a 2-8S hub with display and encoder UI, ESP32-S3, and USB-C PD EPR (240 W), XT60 and solar inputs. Designed in KiCad (Charger node in KiCad 10 format, Manager in KiCad 9) for JLCPCB assembly. Full design detail: [hardware/docs/DESIGN.md](hardware/docs/DESIGN.md).
 
 ## Status
 
@@ -28,7 +28,7 @@ Part-level detail (charge core, PD front ends, power tree, cell sense and balanc
 |---|---|
 | `hardware/` | Charger node KiCad 10 project: schematics, PCB, project-local `sourced` library |
 | `hardware/docs/` | Design documentation ([DESIGN.md](hardware/docs/DESIGN.md), [SCHEMATIC_REVIEW.md](hardware/docs/SCHEMATIC_REVIEW.md)) |
-| `hardware-manager/` | Manager KiCad project: schematics, project-local `sourced` library (no PCB yet) |
+| `hardware-manager/` | Manager KiCad 9 project: schematics, project-local `sourced` library (no PCB yet) |
 | `libs/KiCad-Library` | Shared Incutec symbol/footprint/3D library (git submodule) |
 
 `datasheets/` directories are gitignored; datasheets are fetched on demand and do not ship with the repo.
@@ -47,7 +47,7 @@ Each project's lib tables reference its project-local `sourced` library (`libs/s
 git clone --recursive https://github.com/incutec-hw/Charger.git
 ```
 
-Open `hardware/Charger.kicad_pro` or `hardware-manager/Manager.kicad_pro` in KiCad 10. Production exports (gerbers, BOM, CPL) will be generated with the [KiCad Fabrication Toolkit](https://github.com/bennymeg/Fabrication-Toolkit) plugin. Headless checks use `kicad-cli`:
+Open `hardware/Charger.kicad_pro` or `hardware-manager/Manager.kicad_pro` in KiCad 10. Production exports (gerbers, BOM, CPL) are generated with the [KiCad Fabrication Toolkit](https://github.com/bennymeg/Fabrication-Toolkit) plugin; none exist yet. Headless checks use `kicad-cli`:
 
 ```
 kicad-cli sch erc --exit-code-violations hardware/Charger.kicad_sch

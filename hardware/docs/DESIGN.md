@@ -35,7 +35,8 @@ Connectors: USB-C (TYPE-C-31-M-12, PD input), XT60 male and female (DC input and
 | USB-PD controller | TPS26750 (U1) | PD 3.1, config EEPROM on dedicated I2C bus |
 | EPR front end | TPD4S480 (U16) | 48 V EPR VBUS protection and voltage translation |
 | Power-path driver | SiLM2660 (U17) + 2x SFS08R03GNF | Back-to-back 80 V / 3.3 mOhm FETs, 240 W path |
-| Input OR-ing | 3x LM74700 (U4, U5, U9) | USB-C, XT60 and solar inputs, ideal-diode controllers |
+| Input OR-ing | 3x LM74700 (U3, U4, U5) | USB-C, XT60 and solar inputs, ideal-diode controllers |
+| Pack reverse protection | LM74700 (U9) + SFS08R03GNF (Q27) | Ideal-diode controller and FET at the pack XT60 |
 | Charge controller | BQ25758 (U6) | Buck-boost, 5 mOhm sense, IOUT programmed to 10 A, fSW ~450 kHz |
 | Power stage | 4x SFS08R03GNF (Q7-Q10) | Buck and boost legs |
 | 12 V rail | TPS54160 (U12) | Gate-drive supply (DRV_SUP) |
