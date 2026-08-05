@@ -1,16 +1,43 @@
 # macOS
 .DS_Store
 
-# KiCad backups / locks / caches
+# KiCad backup and autosave
 *-backups/
-*.kicad_pcb-bak
-*.kicad_sch-bak
-*.lck
-fp-info-cache
-*.kicad_prl
+*.bak
+*.000
+_autosave-*
+*~
+\#auto_saved_files#
 
-# Editor local history
-.history/
+# KiCad generated/local
+*.kicad_prl
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*.lck
+*.net
+*.rpt
+*.tmp
+fp-info-cache
+replicate_layout.log
+
+# KiCad local history
+**/.history/
+
+# 3D exports (not library files)
+hardware/*.step
+hardware-manager/*.step
+**/*.glb
+
+# Production output (generated, re-exportable)
+**/production/
+
+# Python
+__pycache__/
+*.pyc
+
+# Claude
+.claude/
+CLAUDE.md
 
 # Vendor datasheets (large PDFs, fetch on demand)
 datasheets/
