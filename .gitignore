@@ -1,8 +1,16 @@
-__pycache__/
-*.pyc
-.easyeda_cache/
+# macOS
 .DS_Store
+
+# KiCad backups / locks / caches
+*-backups/
 *.kicad_pcb-bak
 *.kicad_sch-bak
-*-backups/
+*.lck
 fp-info-cache
+*.kicad_prl
+
+# Editor local history
+.history/
+
+# Vendor datasheets (large PDFs, fetch on demand)
+datasheets/

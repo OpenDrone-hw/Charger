@@ -1,0 +1,14 @@
+{
+  "board": {},
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "meta": {
+    "filename": "Manager.kicad_pro",
+    "version": 1
+  },
+  "schematic": {},
+  "sheets": [],
+  "text_variables": {}
+}
