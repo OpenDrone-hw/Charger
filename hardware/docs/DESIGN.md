@@ -1,6 +1,6 @@
 # Charger Design Notes
 
-Detailed design description of both boards. Values are extracted from the KiCad design files: `hardware/Charger.kicad_sch` (+ `main.kicad_sch`, `cell.kicad_sch`), `hardware/Charger.kicad_pcb`, `hardware-manager/Manager.kicad_sch` (+ `main.kicad_sch`, `cell.kicad_sch`). Both schematics are work in progress; verified defects are catalogued in [SCHEMATIC_REVIEW.md](SCHEMATIC_REVIEW.md) and several subcircuits below are known to be incompletely wired as committed.
+Detailed design description of both boards. Values are extracted from the KiCad design files: `hardware/Charger.kicad_sch` (+ `main.kicad_sch`, `cell.kicad_sch`), `hardware/Charger.kicad_pcb`, `hardware-manager/Manager.kicad_sch` (+ `main.kicad_sch`, `cell.kicad_sch`). Verified defects, the layout state and the fabrication-readiness verdict are in [SCHEMATIC_REVIEW.md](SCHEMATIC_REVIEW.md); several subcircuits below are incompletely wired as committed.
 
 ## System concept
 
@@ -50,12 +50,14 @@ Connectors: USB-C (TYPE-C-31-M-12, EPR), XT60 male and female, 9-pin JST XH bala
 
 ## Libraries
 
-Each project carries a frozen project-local `sourced` library (`libs/sourced.kicad_sym`, `libs/sourced.pretty/`, `libs/sourced.3dshapes/`) with the parts placed so far. New parts come from the shared `Incutec` library in the `libs/KiCad-Library` submodule, referenced by both lib tables.
+Placed parts come from three sources:
+
+- Project-local `sourced` library (`libs/sourced.kicad_sym`, `libs/sourced.pretty/`, `libs/sourced.3dshapes/`), listed in each project's `sym-lib-table` and `fp-lib-table`. Holds the vendor-imported parts: ICs, connectors, FETs, inductors, module footprints.
+- KiCad stock libraries (`Device:`, `power:`, `Resistor_SMD:`, `Capacitor_SMD:`, `Diode_SMD:`, `Package_TO_SOT_SMD:`, `Connector_Generic:`). These carry all passives and generic symbols and are the majority of placed parts on both boards. They are global KiCad libraries, not listed in either project's lib tables, so a clone opened without KiCad's stock libraries will not resolve most of the design. The OpenDrone convention is project-local libraries only; making this repo self-contained is a migration task, not done.
+- Shared `Incutec` library from the `libs/KiCad-Library` submodule. Referenced by both projects' lib tables, but no placed part uses it yet.
+
+`hardware/libs` and `hardware-manager/libs` are byte-identical copies of the same `sourced` library, 116 MB each. Collapsing them to one copy at repo root also needs the `${KIPRJMOD}/libs/sourced.3dshapes/...` 3D model paths embedded in `hardware/Charger.kicad_pcb` and in the `.kicad_mod` files rewritten, so it is a KiCad-side edit, not a file move. Separately, 14 of the 66 footprints in each `sourced.pretty` point their 3D models at an absolute path under an old checkout location (`/Users/stan/OpenDrone/Charger/hardware/libs/...`), which no longer resolves; they need repointing at `${KIPRJMOD}`.
 
 ## Firmware
 
 No firmware exists in this repo. The intended split is hardware under CERN-OHL-S-2.0 and firmware under MIT once published.
-
-## Revisions
-
-- **Unreleased**: Charger node schematic and first PCB layout in progress, Manager schematic drawn, shared Incutec KiCad library wired as the `libs/KiCad-Library` submodule (2026-08-04). Nothing fabricated.

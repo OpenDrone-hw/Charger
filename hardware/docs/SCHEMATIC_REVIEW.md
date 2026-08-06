@@ -1,4 +1,4 @@
-# OpenDrone Charger: Schematic Review (SLAVE + MANAGER)
+# OpenDrone Charger: Schematic Review (Charger node + Manager)
 
 Synthesized from per-IC audits, adversarial verifications, subcircuit analyses, and cross-cutting checks. Findings whose verification returned `confirmed=false` / `INVALID` were dropped (listed at the end). Severities reflect the verified `final_severity`.
 
@@ -6,31 +6,35 @@ Synthesized from per-IC audits, adversarial verifications, subcircuit analyses, 
 
 ## 1. Executive Summary & Readiness Verdict
 
-### SLAVE (`hardware/`, ESP32-C3, 2-6S / ≤3A charge-only)
+### Charger node (`hardware/`, ESP32-C3, 2-6S / ≤3A charge-only)
 **Verdict: NOT FUNCTIONAL, do not fab. Schematic is a corrupted, mid-edit work-in-progress.**
 
-The dominant root cause is an annotation/UUID-linkage break: the root sheet `Charger.kicad_sch` (UUID `a9adf4ae…`) no longer matches the cell-instance reference paths or the `.kicad_pro` `top_level_sheets` UUID (`fb88b6f9…`). KiCad emits an annotation-error warning on netlist export and collapses all six cell instances onto one duplicate reference set, falsely shorting TAP1…TAP6 / AIN1…AIN6 and BAL_EN1…6. This means **every SLAVE "missing connection" finding below is partly an artifact of the corruption and partly real**: the entire power stage (gate drive, FET drains, bootstrap, input sense, program pins, 3V3 rail) is unwired in the exported netlist. The board must be re-annotated/re-linked in the GUI and re-netlisted before any of it can be trusted. Independent of the corruption, several power-stage SEV1s and a USBLC6-on-PD-VBUS SEV1 are genuine design errors. The logic-domain core (ESP32-C3 straps, EN RC, I2C, prog header) and the cell sense/balance topology are correct.
+The dominant root cause is an annotation/UUID-linkage break: the root sheet `Charger.kicad_sch` (UUID `a9adf4ae…`) no longer matches the cell-instance reference paths or the `.kicad_pro` `top_level_sheets` UUID (`fb88b6f9…`). KiCad emits an annotation-error warning on netlist export and collapses all six cell instances onto one duplicate reference set, falsely shorting TAP1…TAP6 / AIN1…AIN6 and BAL_EN1…6. This means **every Charger node "missing connection" finding below is partly an artifact of the corruption and partly real**: the entire power stage (gate drive, FET drains, bootstrap, input sense, program pins, 3V3 rail) is unwired in the exported netlist. The board must be re-annotated/re-linked in the GUI and re-netlisted before any of it can be trusted. Independent of the corruption, several power-stage SEV1s and a USBLC6-on-PD-VBUS SEV1 are genuine design errors. The logic-domain core (ESP32-C3 straps, EN RC, I2C, prog header) and the cell sense/balance topology are correct.
 
-### MANAGER (`hardware-manager/`, ESP32-S3, 2-8S / ~10A, USB-PD 240W EPR bidirectional)
+### Manager (`hardware-manager/`, ESP32-S3, 2-8S / ~10A, USB-PD 240W EPR bidirectional)
 **Verdict: NOT FUNCTIONAL as drawn, multiple genuine SEV1 design errors, but the netlist itself is clean (no corruption).**
 
-The MANAGER schematic is correctly annotated and its BQ25758 charge core + power tree are largely well-designed. However it has a cluster of hard showstoppers: ESP32-S3 held in reset (EN pulled low), two TPS54202 EN pins driven 5V over abs-max, USBLC6 ESD array on the 48V EPR VBUS rail, TPS54160 PWRGD tied to 12V (2× abs-max), the 3V3 buck output islanded off the rail, the EPR blocking FET being a 2N7002, the ACUV/ACOV divider swapped+mis-valued, the TLA2528 ADDR floating, and the EEPROM I2C bus pulled up at 1 MΩ. All are fixable but every one blocks bring-up or risks part damage.
+The Manager schematic is correctly annotated and its BQ25758 charge core + power tree are largely well-designed. However it has a cluster of hard showstoppers: ESP32-S3 held in reset (EN pulled low), two TPS54202 EN pins driven 5V over abs-max, USBLC6 ESD array on the 48V EPR VBUS rail, TPS54160 PWRGD tied to 12V (2× abs-max), the 3V3 buck output islanded off the rail, the EPR blocking FET being a 2N7002, the ACUV/ACOV divider swapped+mis-valued, the TLA2528 ADDR floating, and the EEPROM I2C bus pulled up at 1 MΩ. All are fixable but every one blocks bring-up or risks part damage.
 
-**Neither board is ready for fabrication.** SLAVE needs re-annotation first, then a power-stage rewire; MANAGER needs ~10 connection/value corrections.
+**Neither board is ready for fabrication.** The Charger node needs re-annotation first, then a power-stage rewire; the Manager needs ~10 connection/value corrections.
+
+### Layout state
+
+`hardware/Charger.kicad_pcb` holds 164 footprints imported from the netlist and roughly placed over about 69 x 70 mm. There are no tracks, no vias, no copper zones and no board outline (Edge.Cuts carries no geometry), and the stackup is 2 layers. `kicad-cli pcb drc` is therefore not a meaningful acceptance check on this board yet. The OpenDrone default is 4 layers: settle the stackup and draw the outline before routing starts.
 
 ---
 
 ## 2. SEV1: Showstoppers
 
-### SLAVE
+### Charger node
 
 **S1. Cell hierarchical sheet annotation/UUID break → 6× duplicate refs, false net shorts**
 Root `Charger.kicad_sch` UUID `a9adf4ae…` ≠ cell-instance paths / `.kicad_pro top_level_sheets` UUID `fb88b6f9…`. KiCad reports "schematic has annotation errors"; netlist export collapses cell1…cell6 to one ref set {R121,R122,R123,R124,R125,C105,D105,Q109,Q110}. Result: AIN1…AIN6 all resolve to `{C105.1,R121.2,R122.1}`, TAP1…6 share `R121.1/R123.1/D105.1/Q110.2`, BAL_EN1…6 share `R124.1`. The cell.kicad_sch content itself is correctly annotated: this is a broken root↔instance link, not a wiring bug.
-*Fix:* In KiCad GUI, run Tools ▸ Annotate Schematic (reset/re-link instances) so cell paths point at root `a9adf4ae…`, reconcile `.kicad_pro top_level_sheets` UUID, re-export netlist, confirm 54 unique cell refs and no warning. **Re-run this entire SLAVE audit afterward**: the exported netlist and pin data are unreliable for the cell hierarchy until then.
+*Fix:* In KiCad GUI, run Tools ▸ Annotate Schematic (reset/re-link instances) so cell paths point at root `a9adf4ae…`, reconcile `.kicad_pro top_level_sheets` UUID, re-export netlist, confirm 54 unique cell refs and no warning. **Re-run this entire Charger node audit afterward**: the exported netlist and pin data are unreliable for the cell hierarchy until then.
 
 **S2. BQ25758 (U2) entire gate-drive bus unconnected: converter cannot switch**
 HIDRV1(27), LODRV1(25), BTST1(26), HIDRV2(19), BTST2(20), LODRV2(21) all UNCONNECTED; correspondingly Q2/Q3/Q4/Q5 gate (pin 4) all UNCONNECTED. SW1={C3.2,L1.1,Q2.S,Q3.D,U2.28}, SW2={C4.2,L1.2,Q4.S,Q5.D,U2.18} bridges exist but nothing drives them.
-*Fix:* HIDRV1→Q2.G, LODRV1→Q3.G (buck/SW1); HIDRV2→Q4.G, LODRV2→Q5.G (boost/SW2), via series gate R (2.2-10Ω, optional given BQ's integrated 3.4Ω/1.0Ω drivers). Mirror MANAGER U6.
+*Fix:* HIDRV1→Q2.G, LODRV1→Q3.G (buck/SW1); HIDRV2→Q4.G, LODRV2→Q5.G (boost/SW2), via series gate R (2.2-10Ω, optional given BQ's integrated 3.4Ω/1.0Ω drivers). Mirror Manager U6.
 
 **S3. Bootstrap caps C3/C4 BTST-side floating**
 C3={2:SW1}, C4={2:SW2}; pin 1 of each on no net; BTST1/BTST2 unconnected. High-side drivers have no supply even after S2.
@@ -60,7 +64,7 @@ U7 has only VIN(5)/EN(4)=+BATT, GND(2). CB(1)/BST, FB(3), SW(6) all UNCONNECTED.
 D2 is a 5V ESD array (VRWM 5V, VBR 6V min); its VBUS pin sits on `/main/USBC_VBUS` upstream of Q1. First PD negotiation above ~6V breaks down the internal VBUS clamp and destroys D2 / loads the adapter so PD can't hold.
 *Fix:* Keep D2 on D+/D− data lines only; protect raw VBUS with a ≥33V TVS (mirror D3 SMBJ30A on +BATT). Do not tie the USBLC6 VBUS pin to the high-voltage PD rail.
 
-### MANAGER
+### Manager
 
 **M1. ESP32-S3 (U15) EN/CHIP_PU pulled to GND: held in permanent reset**
 EN_ESP = {R70.1, SW1.1, SW1.2, U15.3}; R70 (10k) other end on GND = pull-DOWN; SW1 (reset btn) also to GND. No pull-up to 3V3, no RC cap. EN sits at 0V → chip never enables.
@@ -98,19 +102,19 @@ Both EN (pin 5) on `/main/12V`. TPS54202 EN abs-max −0.3 to 7V; 12V is ~5V ove
 D1.5 on `/main/USBC_VBUS` (raw connector VBUS, also feeds TPD4S480, Q1 80V FET, C57 100V). USBLC6 is a 5V part; enumerates fine at 5V SPR, then the internal VBUS-GND TVS conducts continuously the instant any >6V PDO (9V PPS … 48V EPR) is requested → destroys D1 / clamps the rail.
 *Fix:* Keep D1 on DP/DN data lines; protect raw EPR VBUS with a 30V+ working-voltage TVS (e.g. SMAJ33A) at the connector, or move D1's VBUS pin to a regulated ≤5V node.
 
-**M10. MANAGER 3.3V buck (U14) output islanded on net RAIL3: entire 3V3 rail unpowered**
+**M10. Manager 3.3V buck (U14) output islanded on net RAIL3: entire 3V3 rail unpowered**
 U14 SW_3V3→L4.1, L4.2→net **RAIL3** = {C45.1, L4.2} only. The actual 3V3 loads (U15, LCD, U7, U8, all pull-ups), bulk C46, and FB-top R92.1 are on `/main/3V3`. RAIL3 and `/main/3V3` are not connected → buck output floats and has no feedback path. (5V/12V bucks are wired correctly by contrast.)
 *Fix:* Merge RAIL3 into `/main/3V3` (post-inductor node) so loads and the FB divider sense the output.
 
 **M11. Battery ideal-diode (U9/Q27) is charge-only and BLOCKS the bidirectional USB-PD discharge path**
-U9 LM74700 ANODE=VBAT, CATHODE=TAP8; Q27 source=VBAT, drain=PACK_FUSED. The ideal diode conducts only VBAT→pack (charging) and the reverse comparator (−11mV, <0.45µs) shuts the gate off for pack→VBAT (discharge); Q27 body diode also opposes. U9/Q27 is the SOLE series element between pack and VBAT. The MANAGER is spec'd bidirectional (charge + USB-PD discharge) and the BQ25758 supports reverse power: this topology prevents discharge. EN cannot defeat the reverse comparator.
-*Fix:* For bidirectional operation use a commanded back-to-back FET pair (gate driver you control, not a self-deciding ideal-diode), or add a separately-controlled discharge FET in parallel. If the node is intended charge-only, correct the README/CLAUDE.md bidirectional claim. Confirm intent in DESIGN.md before changing hardware.
+U9 LM74700 ANODE=VBAT, CATHODE=TAP8; Q27 source=VBAT, drain=PACK_FUSED. The ideal diode conducts only VBAT→pack (charging) and the reverse comparator (−11mV, <0.45µs) shuts the gate off for pack→VBAT (discharge); Q27 body diode also opposes. U9/Q27 is the SOLE series element between pack and VBAT. The Manager is spec'd bidirectional (charge + USB-PD discharge) and the BQ25758 supports reverse power: this topology prevents discharge. EN cannot defeat the reverse comparator.
+*Fix:* For bidirectional operation use a commanded back-to-back FET pair (gate driver you control, not a self-deciding ideal-diode), or add a separately-controlled discharge FET in parallel. If the Manager is intended charge-only, correct the bidirectional claim in DESIGN.md. Confirm intent before changing hardware.
 
 ---
 
 ## 3. SEV2: Major
 
-### SLAVE
+### Charger node
 
 **S-A. No pull-ups on INT/PG/STAT open-drain outputs (U2)**
 INT_CHG={U2.3,U8.20}, PG_CHG={U2.6,U8.21}, STAT_CHG={U2.4,U8.6}, each 2-member, no pull-up. Open-drain can only sink; lines read stuck-low unless ESP internal pull-ups are enabled (fragile for IRQ/status).
@@ -124,27 +128,27 @@ Both UNCONNECTED. EN_IOUT_PIN/EN_IIN_PIN reset to 1 (enabled), so at POR both ar
 `/main/USBC_VBUS` has no ceramic (only ESD/zener/P-FET/pull-up). Every reference figure shows 1µF from the VBUS rail to GND for OVP/UVP sensing and dead-battery energy storage. (VDD pin5 IS decoupled by C36+C37=20µF: that requirement is met; only the VBUS-rail cap is missing.)
 *Fix:* Add 1µF ≥35V X7R from VBUS (U1.16/J3 VBUS) to GND near the IC; a 10µF input bulk is also advisable for the P-FET inrush.
 
-**S-D. SLAVE charge inductor L1 (SRP6540-100M, 10µH) current-under-rated**
+**S-D. Charger node charge inductor L1 (SRP6540-100M, 10µH) current-under-rated**
 Isat=Irms=4A, DCR=78.5mΩ. Charging up to 6S (25.2/26.1V) at 3.03A from ≤20V USB-PD forces boost; inductor current = Iin can reach ~10A at 9V in and >4A even at 20V in → saturation + ~1.1W DCR self-heat.
 *Fix:* Use an ≥8A-Isat / ≥6A-Irms 10µH low-DCR part (e.g. SRP1265A-class). Size for worst-case boost peak, not 3A output.
 
-**S-E. SLAVE logic buck TPS560430 (600mA) marginal for ESP32-C3 Wi-Fi TX**
+**S-E. Charger node logic buck TPS560430 (600mA) marginal for ESP32-C3 Wi-Fi TX**
 Only 3V3 source; ESP32-C3 Wi-Fi TX ~335mA continuous with higher peaks + ~30-50mA of other loads. TX burst can hit the 600mA current limit → brownout/reset.
-*Fix:* Move to a ≥1A logic buck (MANAGER uses TPS54202 2A), or bench-verify Wi-Fi TX is throttled with no brownout. Keep generous 3V3 bulk.
+*Fix:* Move to a ≥1A logic buck (Manager uses TPS54202 2A), or bench-verify Wi-Fi TX is throttled with no brownout. Keep generous 3V3 bulk.
 
-**S-F. No output bulk capacitance on SLAVE converter output (+VBAT/VBATX)**
+**S-F. No output bulk capacitance on Charger node converter output (+VBAT/VBATX)**
 Only SRP/SRN sense caps; output has no ceramic bulk for ripple/loop stability. Input +BATT only has C35(10µF)+C1(1µF).
 *Fix:* Add 2-4× 10-22µF/50V X7R/X7S on the output near R4/+VBAT and matching input bulk per BQ25758 layout recommendations.
 
-**S-G. SLAVE HUSB238A unused control pins**
+**S-G. Charger node HUSB238A unused control pins**
 INT_N(11), FAULT/OUT2(13), DBG_N(6), FLGIN(14) floating; EN_HVDCP/OUT1(7)→`/main/HVDCP_DIS` single-pin dangling. INT_N open = no PD interrupt (OK only if firmware polls). FLGIN floating is a robustness issue (downgraded to SEV3 below); HVDCP_DIS dangling suggests a dropped strap.
 *Fix:* Route INT_N to a GPIO (or pull-up if polled). Terminate EN_HVDCP/OUT1 per intended HVDCP config. Re-verify after S1 re-annotation.
 
-**S-H. SLAVE ACOV/V20 divider mis-netted (R15 dangling)**
+**S-H. Charger node ACOV/V20 divider mis-netted (R15 dangling)**
 R15.2 on `/main/ACOV`, R15.1 on single-pin net `/main/V20`. Half-connected resistor; ACUV=+BATT is the datasheet "unused" tie (OK).
 *Fix:* Complete the divider if ACOV programming is intended, else remove R15. Re-verify after re-annotation.
 
-### MANAGER
+### Manager
 
 **M-A. PD config-port I2C value error**: see M5 (SEV1; the same R5/R6/R7=1MΩ defect).
 
@@ -183,7 +187,7 @@ U11 on 3V3; VICR ceiling ~2.57-2.6V (VCC−0.7 over temp). OV divider R65=127k/R
 PD_FLT={R73.1,U16.9} pulls up to 3V3 only, goes nowhere. Hardware OVP still protects silicon, but firmware gets no fault notification and can't force detach.
 *Fix:* Route PD_FLT to a free TPS26750 GPIO or an ESP32-S3 input.
 
-**M-J. MANAGER 5V-rail inductor L3 (SWPA4030 4.7µH, Isat ~2.6A) saturation margin thin**
+**M-J. Manager 5V-rail inductor L3 (SWPA4030 4.7µH, Isat ~2.6A) saturation margin thin**
 Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 *Fix:* Confirm 5V load <2A or use a 4.7µH part rated ≥3.5A Isat.
 
@@ -193,9 +197,9 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 
 ## 4. SEV3: Minor / Robustness / EMC
 
-### SLAVE
+### Charger node
 - **NTC divider off-center (board temp):** R53‖R54 = 5k top vs RT2 10k → ~2.2V at 25°C, biases ADC range; two parallel 10k almost certainly unintentional. Use a single 10k top (DNP one), or set/document the intended value.
-- **U17 BAT-pin RC filter omitted** *(MANAGER: see note below)*. *(SLAVE has no U17; this is a MANAGER item: listed under MANAGER.)*
+- **U17 BAT-pin RC filter omitted** *(Manager: see note below)*. *(The Charger node has no U17; this is a Manager item, listed under Manager.)*
 - **VAC cap C1 (1µF/25V X5R) under-rated:** +BATT reaches 25.2V (6S) / up to 28V EPR; 25V X5R loses most of its C near rated V. Use ≥50V 1µF (0603/0805).
 - **REGN/DRV_SUP share one 4.7µF (C6):** TI app circuit shows a 4.7µF on each pin. Prefer separate caps at REGN and DRV_SUP given 4-FET gate-drive current.
 - **MODE (pin 17) floating:** *(downgraded from SEV2)* open pin = >27kΩ bin = buck-boost auto-detect, which matches the populated power stage, likely benign, but not the datasheet-prescribed method. Fit an explicit ≥27.0kΩ ±1% resistor MODE→PGND for deterministic operation.
@@ -207,7 +211,7 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 - **TLA2528 ADDR floating = 0x10 (valid):** documented config, but the leakage-sensitive option; keep the node clean or add the Table-2 resistor.
 - **Bleed resistor R125 (RC2512 27R, 2W "7W"):** 0.7W at LiHV (≈35% of 2W), safe but hot; do NOT substitute a 1W part; spread the six with copper pour away from the dividers/ADC.
 
-### MANAGER
+### Manager
 - **U17 SiLM2660 BAT-pin RC filter (100R + 10nF) omitted:** only C57 0.1µF and C61 470nF on the node. Add 100R series into U17 BAT + 10nF BAT→GND per datasheet Fig 8 for charge-pump-reference robustness vs VBUS dv/dt.
 - **U17 CP_EN slaved to CHG_EN/DSG_EN:** every enable incurs the full ~50ms tCPON charge-pump start before the FETs turn on. If latency matters, break CP_EN onto its own GPIO and pre-arm it; else document.
 - **DRV_SUP at 12V near DRV_OVP (12.8V min):** worst-case peak ~12.55-12.6V leaves ~200-300mV positive margin (no OVP trip under datasheet-bounded worst case), but zero margin band and DRV_OVP has no hysteresis. Drop the gate-drive rail to ~9-10V (re-value R88/R89).
@@ -217,13 +221,13 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 - **MODE resistor R11 = 3.0k at the buck-boost detect boundary:** ±1% can read above the ≤3.0kΩ threshold and misclassify as buck-only. Use 2.0-2.2k.
 - **Input TVS D11 (SMDJ51A) clamp 82V > BQ25758 VAC abs-max 70V and 63V caps; VBR(min) 56.7V < 60V max input.** Coordinate a lower-clamp TVS below 70V (and 63V cap rating) with standoff above true max operating voltage. *(Same device as M-D.)*
 - **VBUS_IN ceramic-cap voltage margin tight at 48V:** 63V X7R MLCCs lose ~30-40% C from DC bias at 48V, and D11 lets the rail momentarily exceed 63V during a surge. Budget for DC-bias derating; consider 100V MLCCs for the small ceramics.
-- **Battery-side TVS standoff close to max LiHV pack:** SLAVE D12 SMBJ28A vs 6S LiHV 26.1V (~1.9V); MANAGER D10 SMBJ36A vs 8S LiHV 34.8V (~1.2V). If LiHV is supported, bump one step (SMBJ30A / SMBJ40A).
-- **Balance-drive NPN (MMBT3904) over-dissipates on upper cells (MANAGER cell sheet):** when the 12V gate-clamp zener holds the NPN collector at TAPn−12V with no series limit, Ic≈26mA → Cell8 Vce=21.6V → ~0.56W in a 200mW SOT-23. Add a 2-4.7kΩ series collector/clamp resistor (caps dissipation to ~0.1W); re-check cells 6/7/8. **(This is effectively a SEV2-class thermal failure during normal top-cell balancing: fix before fab.)**
-- **12V gate-clamp zener at SI2319 ±12V Vgs abs-max (MANAGER cell sheet):** use a 10-11V zener.
+- **Battery-side TVS standoff close to max LiHV pack:** Charger node D12 SMBJ28A vs 6S LiHV 26.1V (~1.9V); Manager D10 SMBJ36A vs 8S LiHV 34.8V (~1.2V). If LiHV is supported, bump one step (SMBJ30A / SMBJ40A).
+- **Balance-drive NPN (MMBT3904) over-dissipates on upper cells (Manager cell sheet):** when the 12V gate-clamp zener holds the NPN collector at TAPn−12V with no series limit, Ic≈26mA → Cell8 Vce=21.6V → ~0.56W in a 200mW SOT-23. Add a 2-4.7kΩ series collector/clamp resistor (caps dissipation to ~0.1W); re-check cells 6/7/8. **(This is effectively a SEV2-class thermal failure during normal top-cell balancing: fix before fab.)**
+- **12V gate-clamp zener at SI2319 ±12V Vgs abs-max (Manager cell sheet):** use a 10-11V zener.
 - **Cumulative-tap divider scheme (both boards):** per-cell V = difference of two large near-equal cumulative readings, so gain tolerance dominates: the 0.1%/25ppm thin-film parts are mandatory (a 1% substitution makes per-cell readings useless); bottom cell uses only ~12% of FSR. Document the differencing in firmware; consider a per-cell differential front-end on respin.
-- **Always-on dividers create position-dependent self-discharge (both boards):** bottom cell drains ~3.5× the top (~802µA vs ~229µA at 4.2V on SLAVE). Don't leave the board connected to a pack at rest; consider a sense-enable switch or higher-impedance dividers.
-- **MANAGER display FPC (J4) underspecified:** only 6 pins (3V3/GND/SCLK/MOSI/DC/CS); no LCD_RST net anywhere; no backlight pins; symbol(6)/value("12P")/footprint(8) pin counts disagree. Pick the exact module, reconcile pin counts, add RST + backlight.
-- **MANAGER backlight FET Q29 shorts 5V→GND when on:** gate=IO9, drain=5V, source=GND, with no LED load in the path (no backlight pin on J4). Insert the backlight LED string + current-limit R in series; low-side switch the cathode.
+- **Always-on dividers create position-dependent self-discharge (both boards):** bottom cell drains ~3.5× the top (~802µA vs ~229µA at 4.2V on the Charger node). Don't leave the board connected to a pack at rest; consider a sense-enable switch or higher-impedance dividers.
+- **Manager display FPC (J4) underspecified:** only 6 pins (3V3/GND/SCLK/MOSI/DC/CS); no LCD_RST net anywhere; no backlight pins; symbol(6)/value("12P")/footprint(8) pin counts disagree. Pick the exact module, reconcile pin counts, add RST + backlight.
+- **Manager backlight FET Q29 shorts 5V→GND when on:** gate=IO9, drain=5V, source=GND, with no LED load in the path (no backlight pin on J4). Insert the backlight LED string + current-limit R in series; low-side switch the cathode.
 - **TPS54202 IIN hardware limit R13=1.62k → ~12A ceiling:** non-binding upper clamp, generous for a PD input. Verify vs negotiated PD current; increase R13 if a lower ceiling is wanted.
 - **TCA9554 part-variant risk:** netlist `part` field is "TCA9554PWR" (base, 0x20) while value/MPN are "TCA9554APWR" (0x38). The non-A part at 0x20 would collide with TPS26750 (0x20-0x23). Lock the assembled part to the A-variant.
 
@@ -231,7 +235,7 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 
 ## 5. Unconnected-Pin Disposition
 
-### SLAVE
+### Charger node
 
 | Ref.Pin | Name | Disposition |
 |---|---|---|
@@ -258,9 +262,9 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 | U1.7 (EN_HVDCP) | →`/main/HVDCP_DIS` single-pin | **SUSPECT (S-G)** |
 | R15.1 (→`/main/V20`) | ACOV divider | **SUSPECT (S-H)** |
 
-*(All "BUG" rows on SLAVE are partly entangled with the S1 annotation corruption: re-annotate and re-export before treating as final.)*
+*(All "BUG" rows on the Charger node are partly entangled with the S1 annotation corruption: re-annotate and re-export before treating as final.)*
 
-### MANAGER
+### Manager
 
 | Ref.Pin | Name | Disposition |
 |---|---|---|
@@ -282,7 +286,7 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 
 ## 6. Confirmed-Correct / INFO
 
-**SLAVE - verified good:**
+**Charger node - verified good:**
 - ESP32-C3 (U8): power/GND/EPAD correct; EN reset RC (R57 10k + C41 1µF) exactly per datasheet; straps IO2/IO8/IO9 correct for SPI boot + Joint Download via SW1; UART0→prog header J2 correct; I2C (IO4/IO5) with 4.7k pull-ups; GPIO assignments sensible; supply decoupling present.
 - I2C address map collision-free: HUSB238A 0x42(8-bit)/0x21, BQ25758 0x6B, TLA2528 0x10, TCA9554A 0x38; single 4.7k pull-up set.
 - Output current sense (R4 5mΩ + SRP/SRN Kelvin via R11/R12 + VO_SNS) wired and valued correctly.
@@ -290,7 +294,7 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 - Cell sense/balance topology: tap-to-cell mapping, daisy-chained TAP_HI/TAP_LO, per-cell bleed (SI2319 S=TAP_HI → 27R → TAP_LO), XH-7 J5 pinout, gate level-shift (MMBT3904 + R123 default-off + D105 12V zener clamping Vgs to −12V), POR safe state (TCA9554 powers up as inputs → all bleed FETs off), TLA2528 DECAP/AVDD/DVDD decoupling, AIN RC settling, divider keeps AINx within FSR. **(All contingent on fixing S1.)**
 - Input protection: reverse-polarity/OVP-cutoff FET Q18 (AP40P04G) + D11 gate clamp; XT60 OR-ing diode D4 (SS56) + rail TVS D3 (SMBJ30A); OV divider/TL432 reference (trip ≈25.8V, good for 6S Li-ion); Q1 (SI2319) ratings.
 
-**MANAGER - verified good:**
+**Manager - verified good:**
 - BQ25758 (U6) charge core fully and correctly wired: gate-driver→FET pairing (HIDRV1/LODRV1→Q7/Q8 buck, HIDRV2/LODRV2→Q9/Q10 boost), BTST1/2 caps, sense placement (5mΩ SRP/SRN + 5mΩ ACP/ACN with 470nF diff + 100nF CM + 10R filters), IOUT R12=4.99k→10.0A, FSW R10=57.6k→~450kHz, REGN/DRV_SUP caps, NC pins.
 - **SFS08R03GNF FETs are NOT under-driven** (verification INVALID'd that finding): BQ25758 LODRV is supplied from DRV_SUP and HIDRV from BTST replenished from DRV_SUP = `/main/12V`, so gates swing ~12V, not 5V. RDS(on)≈3.3mΩ @ VGS=10V is met; FETs correctly matched. *(Re-evaluate the SEV3 bootstrap-cap droop with this in mind: droop is on the BTST cap, still worth 220-470nF.)*
 - EPR voltage-translation topology correct: TPD4S480 divides 48V → ~20V to protect the 22V-rated TPS26750 VBUS pins; dead-battery RPD shorted to CC; CC OVP path protects controller CC pins.
@@ -307,18 +311,19 @@ Near 2A load with ripple, peak ≈2.3-2.4A vs ~2.6A Isat.
 
 ## 7. Investigated: Not an Issue (dropped findings)
 
-- **MANAGER SFS08 "under-driven at 5V gate"** (was SEV1): **INVALID.** DRV_SUP=12V feeds the LODRV buffers and BTST bootstrap; gates swing ~12V; FET fully enhanced. No thermal-runaway risk; no FET change needed.
-- **MANAGER C75 1µF/25V "over-voltaged for 8S"** (was SEV2): **INVALID.** It's the LM74700 VCAP-to-ANODE charge-pump reservoir (floating, ≤15V stress). 25V rating is correct (~70% margin).
-- **SLAVE BQ25758 MODE floating "undefined mode"** (was SEV2): downgraded to **SEV3.** Open pin auto-detects buck-boost, matching the populated stage; fit an explicit ≥27kΩ resistor for determinism.
-- **SLAVE HUSB238A FLGIN floating** (was SEV2): downgraded to **SEV3.** GATE-disable is opt-in and INT_N is unconnected; only leakage/robustness. Tie to GND.
-- **SLAVE BQ25758 CE/R52 "100k too high, needs 10k"** (sub-claim of the open-drain pull-up finding): **dropped.** CE is a logic input; 100k default-disable pull-up is fine.
-- **MANAGER U6 DRV_SUP near OVP** (was SEV2): downgraded to **SEV3** (worst-case peak below the 12.8V min OVP).
-- **MANAGER U9/Q27 fuse-in-sense-loop** (was SEV2): downgraded to **SEV3** (accuracy only; reverse trip still works).
-- **MANAGER solar Q5/Q6 "reverse blocking fails"** (was SEV2): reverse blocking actually still works via series body diodes; net issue is degraded accuracy + a wasted FET (**SEV2/SEV3** efficiency/BOM), not a functional failure.
-- **MANAGER IO3 JTAG strap** (was SEV2): **INFO.** Correct strap; JTAG source just unavailable.
+- **Manager SFS08 "under-driven at 5V gate"** (was SEV1): **INVALID.** DRV_SUP=12V feeds the LODRV buffers and BTST bootstrap; gates swing ~12V; FET fully enhanced. No thermal-runaway risk; no FET change needed.
+- **Manager C75 1µF/25V "over-voltaged for 8S"** (was SEV2): **INVALID.** It's the LM74700 VCAP-to-ANODE charge-pump reservoir (floating, ≤15V stress). 25V rating is correct (~70% margin).
+- **Charger node BQ25758 MODE floating "undefined mode"** (was SEV2): downgraded to **SEV3.** Open pin auto-detects buck-boost, matching the populated stage; fit an explicit ≥27kΩ resistor for determinism.
+- **Charger node HUSB238A FLGIN floating** (was SEV2): downgraded to **SEV3.** GATE-disable is opt-in and INT_N is unconnected; only leakage/robustness. Tie to GND.
+- **Charger node BQ25758 CE/R52 "100k too high, needs 10k"** (sub-claim of the open-drain pull-up finding): **dropped.** CE is a logic input; 100k default-disable pull-up is fine.
+- **Manager U6 DRV_SUP near OVP** (was SEV2): downgraded to **SEV3** (worst-case peak below the 12.8V min OVP).
+- **Manager U9/Q27 fuse-in-sense-loop** (was SEV2): downgraded to **SEV3** (accuracy only; reverse trip still works).
+- **Manager solar Q5/Q6 "reverse blocking fails"** (was SEV2): reverse blocking actually still works via series body diodes; net issue is degraded accuracy + a wasted FET (**SEV2/SEV3** efficiency/BOM), not a functional failure.
+- **Manager IO3 JTAG strap** (was SEV2): **INFO.** Correct strap; JTAG source just unavailable.
 
 ---
 
-### Cross-board metadata (housekeeping)
-- **SLAVE `.kicad_pro` DOC_* variables are stale** (copied from an RP2354B "OpenFC-Lite / Betaflight" flight controller: DOC_MCU='RP2354B', DOC_FIRMWARE='Betaflight', etc.). Correct to the ESP32-C3 charger. (SEV2 metadata; safe to edit the `.kicad_pro` JSON.)
-- **MANAGER `Manager.kicad_pro` has empty `text_variables`**: populate to mirror the corrected SLAVE schema. (SEV3 metadata.)
+## 8. Resolved
+
+- **Charger node `.kicad_pro` DOC_* variables stale** (was SEV2 metadata): copied from an RP2354B "OpenFC-Lite / Betaflight" flight controller (DOC_MCU='RP2354B', DOC_FIRMWARE='Betaflight'). **RESOLVED** in commit `b9a6ac1`; `hardware/Charger.kicad_pro` now carries the ESP32-C3 charger values.
+- **Manager `Manager.kicad_pro` empty `text_variables`** (was SEV3 metadata): **RESOLVED** in commit `b9a6ac1`; all nine DOC_* keys are populated and mirror the Charger node schema.
