@@ -753,15 +753,15 @@
     ]
   ],
   "text_variables": {
-    "DOC_FIRMWARE": "Betaflight",
-    "DOC_HANDLE": "openfc-lite",
-    "DOC_INPUT": "+BATT 3S–6S",
-    "DOC_MCU": "RP2354B (QFN-80)",
-    "DOC_NAME": "OpenFC-Lite",
-    "DOC_PROTOCOL": "DShot",
-    "DOC_RATING": "3S–6S input; rail currents not yet bench-characterized",
-    "DOC_TAGLINE": "RP2354B Betaflight flight controller — microSD blackbox, analog OSD, external RX",
-    "DOC_VARIANT": "30×30"
+    "DOC_FIRMWARE": "ESP-IDF (in development)",
+    "DOC_HANDLE": "charger-node",
+    "DOC_INPUT": "USB-C PD sink, XT60 DC",
+    "DOC_MCU": "ESP32-C3-MINI-1-N4",
+    "DOC_NAME": "Charger node",
+    "DOC_PROTOCOL": "USB-C PD sink (HUSB238A)",
+    "DOC_RATING": "2-6S pack, 3 A charge current design target, not yet bench-characterized",
+    "DOC_TAGLINE": "Headless 2-6S USB-C charging node, BQ25758 buck-boost, per-cell sense and balancing",
+    "DOC_VARIANT": "2-6S charge node"
   },
   "tuning_profiles": {
     "meta": {
