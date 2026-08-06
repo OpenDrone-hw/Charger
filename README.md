@@ -57,7 +57,7 @@ kicad-cli pcb drc --exit-code-violations hardware/Charger.kicad_pcb
 
 ## Manufacturing
 
-Target fab is JLCPCB assembly with LCSC parts, exported with the Fabrication Toolkit into `hardware/production/` (gitignored). No production exports have been generated and nothing has been fabricated. Revision history: [CHANGELOG.md](CHANGELOG.md).
+Target fab is JLCPCB assembly with LCSC parts, exported with the Fabrication Toolkit into `hardware/production/` (gitignored). No production exports have been generated and nothing has been fabricated.
 
 ## Contributing
 
