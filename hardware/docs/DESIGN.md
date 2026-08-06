@@ -55,3 +55,7 @@ Each project carries a frozen project-local `sourced` library (`libs/sourced.kic
 ## Firmware
 
 No firmware exists in this repo. The intended split is hardware under CERN-OHL-S-2.0 and firmware under MIT once published.
+
+## Revisions
+
+- **Unreleased**: Charger node schematic and first PCB layout in progress, Manager schematic drawn, shared Incutec KiCad library wired as the `libs/KiCad-Library` submodule (2026-08-04). Nothing fabricated.
