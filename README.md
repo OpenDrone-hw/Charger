@@ -30,7 +30,7 @@ Which symbol and footprint libraries the projects use: [DESIGN.md, Libraries](ha
 ## Build and export
 
 ```
-git clone --recursive https://github.com/incutec-hw/Charger.git
+git clone --recursive https://github.com/OpenDrone-hw/Charger.git
 ```
 
 Open `hardware/Charger.kicad_pro` or `hardware-manager/Manager.kicad_pro` in KiCad 10. Production exports (gerbers, BOM, CPL) are generated with the [KiCad Fabrication Toolkit](https://github.com/bennymeg/Fabrication-Toolkit) plugin; none exist yet. Headless checks use `kicad-cli`:
