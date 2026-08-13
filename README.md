@@ -1,56 +1,64 @@
 # Charger
 
-Open-source distributed USB-C charging system for FPV battery packs, part of the incutec OpenDrone line. Two boards share one charge, sense and balance core built around the TI BQ25758 buck-boost charge controller: the **Charger node** (`hardware/`), a headless 2-6S charging node, and the **Manager** (`hardware-manager/`), a 2-8S hub with display and encoder UI. Designed in KiCad (Charger node in KiCad 10 format, Manager in KiCad 9) for JLCPCB assembly.
+**Planned.** No design exists yet. This page is the specification: what we want
+built and why. If you want to design it, say so on
+[Discord](https://discord.gg/v3sWmTcx3R).
 
-Specifications, block-by-block part choices, power tree and cell sense/balance detail: [hardware/docs/DESIGN.md](hardware/docs/DESIGN.md).
+A distributed USB-C charging system for FPV battery packs. Two boards sharing
+one charge, sense and balance core: a headless **charger node** that lives with
+the pack, and a **manager** hub with a display and an encoder that drives
+several nodes.
 
-## Status
+## Why
 
-**Prototype pending.** Neither board has been fabricated. The Charger node has a schematic and a PCB with footprints placed but nothing routed; the Manager is schematic only. Both boards currently fail the schematic review and are not ready for fabrication. Defect list, layout state and readiness verdict: [hardware/docs/SCHEMATIC_REVIEW.md](hardware/docs/SCHEMATIC_REVIEW.md).
+Field charging is one parallel board, one power supply and a lot of trust. The
+distributed shape puts the charge controller with the pack instead: each node
+does its own constant-current, constant-voltage and balancing, and the manager
+becomes a user interface and a power budget rather than the thing doing the
+charging. A failure is then one pack rather than the whole board.
 
-## Repository layout
+USB-C PD is the input because it is the supply people already carry.
 
-| Path | Contents |
+## Requirements
+
+| | |
 |---|---|
-| `hardware/` | Charger node KiCad 10 project: schematics, PCB, `libs/` ([libraries](hardware/docs/DESIGN.md#libraries)) |
-| `hardware/docs/` | Design documentation ([DESIGN.md](hardware/docs/DESIGN.md), [SCHEMATIC_REVIEW.md](hardware/docs/SCHEMATIC_REVIEW.md)) |
-| `hardware-manager/` | Manager KiCad 9 project: schematics, `libs/` (no PCB yet) |
-| `libs/KiCad-Library` | Shared Incutec symbol/footprint/3D library (git submodule) |
+| Charger node | Headless, 2S to 6S, one per pack |
+| Manager | 2S to 8S, display and encoder, drives several nodes |
+| Input | USB-C, PD |
+| Core | TI BQ25758 buck-boost charge controller, or a justified alternative |
+| Balancing | Per cell |
+| Assembly | JLCPCB, LCSC basic parts preferred |
 
-`datasheets/` directories are gitignored; datasheets are fetched on demand and do not ship with the repo.
+## Open questions
 
-## Design entry points
+- **How the manager and nodes talk.** Wired bus, and which one? This decides
+  the connector and half the enclosure.
+- **Power budget.** How is a fixed USB-C PD budget divided across nodes that
+  each want it, and who decides?
+- **Cell count split.** The node is 2S-6S and the manager 2S-8S. Is that split
+  right, or should they match?
+- **Safety.** What happens on a pack fault, a thermal event, or a disconnect
+  mid-charge. This is the part that has to be designed first, not last, because
+  it is the only product in the line that can start a fire on purpose.
+- **Enclosure.** Mechanical is as much of this product as the PCB.
 
-- Charger node root schematic: `hardware/Charger.kicad_sch` (main sheet `hardware/main.kicad_sch` plus 6 instances of `hardware/cell.kicad_sch`)
-- Charger node board: `hardware/Charger.kicad_pcb` (footprints placed, no outline, unrouted)
-- Manager root schematic: `hardware-manager/Manager.kicad_sch` (main sheet `hardware-manager/main.kicad_sch` plus 8 instances of `hardware-manager/cell.kicad_sch`)
+## Research
 
-Which symbol and footprint libraries the projects use: [DESIGN.md, Libraries](hardware/docs/DESIGN.md#libraries).
-
-## Build and export
-
-```
-git clone --recursive https://github.com/OpenDrone-hw/Charger.git
-```
-
-Open `hardware/Charger.kicad_pro` or `hardware-manager/Manager.kicad_pro` in KiCad 10. Production exports (gerbers, BOM, CPL) are generated with the [KiCad Fabrication Toolkit](https://github.com/bennymeg/Fabrication-Toolkit) plugin; none exist yet. Headless checks use `kicad-cli`:
-
-```
-kicad-cli sch erc --exit-code-violations hardware/Charger.kicad_sch
-kicad-cli sch erc --exit-code-violations hardware-manager/Manager.kicad_sch
-kicad-cli pcb drc --exit-code-violations hardware/Charger.kicad_pcb
-```
-
-The `pcb drc` run is not a meaningful check yet: the Charger node board has no outline and no routing, so it passes without proving anything.
-
-## Manufacturing
-
-Target fab is JLCPCB assembly with LCSC parts, exported with the Fabrication Toolkit into `hardware/production/` (gitignored). No production exports have been generated and nothing has been fabricated.
+Earlier design and review work is in [research/](research/). Note that it
+describes an unrouted schematic that has since been removed from `main`; it is
+reference for the thinking, not a design to continue from. The files are
+recoverable at the `pre-reset-2026-08-13` tag.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Issues and pull requests are welcome on any repo. KiCad files cannot be merged,
+so say what you intend to change before you do, on
+[Discord](https://discord.gg/v3sWmTcx3R).
+
+How everything works: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-Hardware licensed under [CERN-OHL-S-2.0](https://ohwr.org/cern_ohl_s_v2.txt). See [LICENSE](LICENSE). Not USB-IF certified; intended for DIY and open-source use.
+Hardware licensed under [CERN-OHL-S-2.0](https://ohwr.org/cern_ohl_s_v2.txt),
+see [LICENSE](LICENSE).
