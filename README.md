@@ -45,16 +45,11 @@ Targets, not measurements. The site imports this table once a board exists.
 
 ## Prior art
 
-An earlier schematic pass exists and was removed from `main` on 2026-08-13:
-BQ25758 core, TLA2528 cell ADC, TCA9554A driving per-cell bleed FETs, ESP32
-modules for ESP-NOW between manager and nodes. It is reference for the
-thinking, not a design to continue from.
-
-- [research/DESIGN.md](research/DESIGN.md): what that pass contained, per
-  block and per board.
-- [research/SCHEMATIC_REVIEW.md](research/SCHEMATIC_REVIEW.md): its review,
-  verdict "not functional, do not fab", with the defects listed.
-- The files themselves: tag `pre-reset-2026-08-13`.
+An earlier schematic pass (BQ25758 core, TLA2528 cell ADC, TCA9554A driving
+per-cell bleed FETs, ESP32 modules for ESP-NOW between manager and nodes) was
+reviewed as not functional and removed from `main` on 2026-08-13. It is
+reference for the thinking, not a design to continue from: tag
+`pre-reset-2026-08-13`.
 
 ## Open questions
 
