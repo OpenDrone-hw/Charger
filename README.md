@@ -9,8 +9,6 @@ want to design it, say so on [Discord](https://discord.gg/v3sWmTcx3R).
 [![Status](https://img.shields.io/endpoint?url=https://opendrone.be/api/status/Charger.json)](https://github.com/OpenDrone-hw/.github/blob/main/CONTRIBUTING.md#the-life-of-a-project)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/v3sWmTcx3R)
 
-Nobody holds this board yet: claim it on Discord.
-
 ## Why
 
 Field charging is one parallel board, one power supply and a lot of trust. The
@@ -51,7 +49,9 @@ reviewed as not functional and removed from `main` on 2026-08-13. It is
 reference for the thinking, not a design to continue from: tag
 `pre-reset-2026-08-13`.
 
-## Open questions
+## Design questions
+
+Resolve these only as part of user-requested design work:
 
 - **How the manager and nodes talk.** Wired bus, and which one? This decides
   the connector and half the enclosure. The earlier pass assumed ESP-NOW.
