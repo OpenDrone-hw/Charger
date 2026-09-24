@@ -36,7 +36,7 @@ Targets, not measurements. The site imports this table once a board exists.
 
 - Two boards, one shared charge, sense and balance core.
 - USB-C PD input on both boards; the manager may add other inputs.
-- Assembly by JLCPCB, LCSC basic parts preferred.
+- Assembly house chosen per release; see production/. LCSC basic parts preferred.
 - Project-local KiCad libraries only, on the org template.
 - Safety first: pack fault, thermal event and mid-charge disconnect are
   designed before the UI is.
