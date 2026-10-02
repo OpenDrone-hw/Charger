@@ -36,7 +36,7 @@ Targets, not measurements. The site imports this table once a board exists.
 
 - Two boards, one shared charge, sense and balance core.
 - USB-C PD input on both boards; the manager may add other inputs.
-- Assembly house chosen per release; see production/. LCSC basic parts preferred.
+- Assembly house chosen per release. LCSC basic parts preferred. Fab-ready manufacturing files are kept in a private Incutec production repository and are not published.
 - Project-local KiCad libraries only, on the org template.
 - Safety first: pack fault, thermal event and mid-charge disconnect are
   designed before the UI is.
@@ -51,7 +51,7 @@ reference for the thinking, not a design to continue from: tag
 
 ## Design questions
 
-Resolve these only as part of user-requested design work:
+Open questions for the design:
 
 - **How the manager and nodes talk.** Wired bus, and which one? This decides
   the connector and half the enclosure. The earlier pass assumed ESP-NOW.
