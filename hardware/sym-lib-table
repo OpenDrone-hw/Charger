@@ -1,0 +1,5 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "BQ25692-Q1") (type "KiCad") (uri "${KIPRJMOD}/Libraries/ul_PQ25692QWRBARQ1/KiCADv6/2026-10-04_19-59-05.kicad_sym") (options "") (descr ""))
+	(lib (name "PBQ76942PFBT") (type "KiCad") (uri "${KIPRJMOD}/Libraries/ul_PBQ76942PFBT/KiCADv6/2026-10-04_21-54-14.kicad_sym") (options "") (descr ""))
+)
