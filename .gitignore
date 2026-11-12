@@ -80,3 +80,7 @@ stencil_out/
 #   *.kicad_dru             design intent
 #   fabrication-toolkit-options.json
 #   *.kicad_sym  *.pretty/  *.3dshapes/   project-local libraries
+
+
+##Local/Working library folder
+/hardware/Libraries/*
