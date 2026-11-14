@@ -53,16 +53,16 @@ reference for the thinking, not a design to continue from: tag
 
 Open questions for the design:
 
-- **How the manager and nodes talk.** Wired bus, and which one? This decides
+- How the manager and nodes talk: wired bus, and which one? This decides
   the connector and half the enclosure. The earlier pass assumed ESP-NOW.
-- **Power budget.** How is a fixed USB-C PD budget divided across nodes that
+- Power budget: how is a fixed USB-C PD budget divided across nodes that
   each want it, and who decides?
-- **Cell count split.** The node is 2S-6S and the manager 2S-8S. Is that split
+- Cell count split: the node is 2S-6S and the manager 2S-8S. Is that split
   right, or should they match?
-- **Safety.** What happens on a pack fault, a thermal event, or a disconnect
+- Safety: what happens on a pack fault, a thermal event, or a disconnect
   mid-charge. This is the only product in the line that can start a fire on
   purpose.
-- **Enclosure.** Mechanical is as much of this product as the PCB.
+- Enclosure: mechanical is as much of this product as the PCB.
 
 ## In the line
 
